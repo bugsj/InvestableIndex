@@ -2,6 +2,8 @@
 
 #include "conf.h"
 #include "DataColumn.h"
+#include "DebugOutput.h"
+#include "tools.h"
 
 namespace InvestableIndex {
 
@@ -18,50 +20,36 @@ namespace InvestableIndex {
 
 	private:
 		static void getPathFormat(std::vector<TCHAR>* pathfmt) {
-			const TCHAR* fmt = COL_FILE_FORMAT;
-			size_t fmtdatalen = wcslen(fmt) + 1;
 			if (s_path->size() > 0) {
 				*pathfmt = *s_path;
-				size_t len = wcslen(pathfmt->data());
-				pathfmt->resize(len + fmtdatalen + 1);
-				::CopyMemory(pathfmt->data() + len, fmt, sizeof(*fmt) * fmtdatalen);
+				Tools::appendStr(pathfmt, COL_FILE_FORMAT);
 			}
 		}
+		std::map<int, int>::const_iterator getLastDateRecord(long long code, long long date) const;
 
 	public:
 		DataTable() {}
 		~DataTable() {}
 
-		static void setPath(const TCHAR* path = nullptr) {
-			if (path != nullptr) {
-				size_t pathlen = wcslen(path);
-				s_user_path.resize(pathlen + 1);
-				::CopyMemory(s_user_path.data(), path, sizeof(*path) * static_cast<int>(pathlen + 1));
-			}
-		}
-		static void setLocalPath(const TCHAR* path) {
-			if (path != nullptr) {
-				size_t pathlen = wcslen(path);
-				s_defaultlocal_path.resize(pathlen + 1);
-				::CopyMemory(s_user_path.data(), path, sizeof(*path) * static_cast<int>(pathlen + 1));
-			}
-		}
+		static void setPath(const TCHAR* path = nullptr);
+		static void setLocalPath(const TCHAR* path);
+		static void useLocal();
 		
-		int init(const TCHAR* name);
+		long long init(const TCHAR* name);
 		long long count() const { return m_columns[0]->count(); }
 		const DataColumn& col(int i) const { return *m_columns[i]; }
 
 		void createIndexDate();
 		void createIndexCode();
 
-		long long getIndexDC(long long code, long long date) const { return m_index_date.at(static_cast<int>(date)).at(static_cast<int>(code)); }
-		long long getLastDate(long long code, long long date) const;
-		long long getLastDateIndex(long long code, long long date) const;
+		long long getIndexDC(long long code, long long date) const { return m_index_date.at(CHECK_DATE_MAX(date)).at(CHECK_CODE_MAX(code)); }
+		long long getLastDate(long long code, long long date) const { return getLastDateRecord(code, date)->first; }
+		long long getLastDateIndex(long long code, long long date) const { return getLastDateRecord(code, date)->second; }
 		long long getData(long long code, long long date, int dataindex = STKDATAFIRSTCOL) const {
 			return m_columns[dataindex]->getll(getLastDateIndex(code, date));
 		}
 
-		const std::unordered_map<int, int>& getIndexByCodeDay(long long date) const { return m_index_date.at(static_cast<int>(date)); }
+		const std::unordered_map<int, int>& getIndexByCodeDay(long long date) const { return m_index_date.at(CHECK_DATE_MAX(date)); }
 	};
 
 }

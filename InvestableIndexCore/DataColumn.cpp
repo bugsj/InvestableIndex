@@ -1,11 +1,14 @@
 #include "pch.h"
 
 #include "DataColumn.h"
+#include "DebugOutput.h"
 
 namespace InvestableIndex {
 
-	int DataColumn::init(const TCHAR* file, int itemsize)
+	long long DataColumn::init(const TCHAR* file, int itemsize)
 	{
+		Debug::WriteLog(file);
+
 		m_FileHandle = ::CreateFile(file, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (m_FileHandle == INVALID_HANDLE_VALUE) {
 			cleanup();
@@ -13,7 +16,7 @@ namespace InvestableIndex {
 		}
 
 		::LARGE_INTEGER filesize;
-		if (!GetFileSizeEx(m_FileHandle, &filesize) || filesize.QuadPart == 0) {
+		if (!::GetFileSizeEx(m_FileHandle, &filesize) || filesize.QuadPart == 0) {
 			cleanup();
 			return 0;
 		}
@@ -31,7 +34,7 @@ namespace InvestableIndex {
 			m_itemcnt = m_size / itemsize;
 		}
 
-		return static_cast<int>(m_itemcnt);
+		return m_itemcnt;
 	}
 
 }

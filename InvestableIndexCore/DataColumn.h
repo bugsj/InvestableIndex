@@ -16,11 +16,13 @@ namespace InvestableIndex {
 		DataColumn() {}
 		~DataColumn() { cleanup(); }
 
-		int init(const TCHAR* file, int itemsize);
+		long long init(const TCHAR* file, int itemsize);
 
 		const void* getBuffer() const { return m_data; }
 		const long long* getll() const { return reinterpret_cast<const long long*>(m_data); }
 		const long long getll(long long index) const { return reinterpret_cast<const long long*>(m_data)[index]; }
+		const double* getd() const { return reinterpret_cast<const double*>(m_data); }
+		const double getd(long long index) const { return reinterpret_cast<const double*>(m_data)[index]; }
 
 		long long getBufferSize() const { return m_size; }
 		long long count() const { return m_itemcnt; }

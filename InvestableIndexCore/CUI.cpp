@@ -167,17 +167,17 @@ namespace InvestableIndex {
 					}
 				}
 				else if (cmdbuf[1] == 'e' && cmdbuf[2] == 't') {
-					int cnt = index->getDayCount();
+					long long cnt = index->getDayCount();
 					const std::vector<double>& daily = index->getDailyReturn();
 					const std::vector<double>& r = index->getCumReturn();
-					for (int i = 0; i < cnt; i++) {
+					for (long long i = 0; i < cnt; i++) {
 						std::cout << index->getDateByIndex(i) << ',' << daily[i + 1] << ',' << r[i + 1] << std::endl;
 					}
 				}
 				else if (cmdbuf[1] == 'y') {
-					double base = index->getIndexBase();
-					int year = static_cast<int>(index->getDateByIndex(0)) / 10000;
-					int cnt = index->getDayCount();
+					double base = static_cast<double>(index->getIndexBase());
+					long long year = index->getDateByIndex(0) / 10000;
+					long long cnt = index->getDayCount();
 					const std::vector<double>& r = index->getCumReturn();
 					for (int i = 0; i < cnt; i++) {
 						if (i + 1 < cnt && index->getDateByIndex(i + 1) / 10000 == year) {
@@ -185,7 +185,7 @@ namespace InvestableIndex {
 						}
 						std::cout << year << ',' << r[i + 1] / base - 1 << ',' << index->getDateByIndex(i) << ',' << r[i + 1] << std::endl;
 						if (i + 1 < cnt) {
-							year = static_cast<int>(index->getDateByIndex(i + 1)) / 10000;
+							year = index->getDateByIndex(i + 1) / 10000;
 							base = r[i + 1];
 						}
 					}

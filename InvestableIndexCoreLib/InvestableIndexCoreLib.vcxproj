@@ -157,6 +157,7 @@
     <ClInclude Include="..\InvestableIndexCore\DataColumn.h" />
     <ClInclude Include="..\InvestableIndexCore\DataSet.h" />
     <ClInclude Include="..\InvestableIndexCore\DataTable.h" />
+    <ClInclude Include="..\InvestableIndexCore\DebugOutput.h" />
     <ClInclude Include="..\InvestableIndexCore\framework.h" />
     <ClInclude Include="..\InvestableIndexCore\IndexData.h" />
     <ClInclude Include="..\InvestableIndexCore\IndexInterface.h" />
@@ -173,6 +174,7 @@
     <ClInclude Include="..\InvestableIndexCore\SizeTopPool.h" />
     <ClInclude Include="..\InvestableIndexCore\StkConContext.h" />
     <ClInclude Include="..\InvestableIndexCore\StkPool.h" />
+    <ClInclude Include="..\InvestableIndexCore\StringFormatter.h" />
     <ClInclude Include="..\InvestableIndexCore\test.h" />
     <ClInclude Include="..\InvestableIndexCore\tools.h" />
     <ClInclude Include="..\InvestableIndexCore\TopLimitFactor.h" />
@@ -184,6 +186,7 @@
     <ClCompile Include="..\InvestableIndexCore\DataColumn.cpp" />
     <ClCompile Include="..\InvestableIndexCore\DataSet.cpp" />
     <ClCompile Include="..\InvestableIndexCore\DataTable.cpp" />
+    <ClCompile Include="..\InvestableIndexCore\DebugOutput.cpp" />
     <ClCompile Include="..\InvestableIndexCore\IndexData.cpp" />
     <ClCompile Include="..\InvestableIndexCore\IndexInterface.cpp" />
     <ClCompile Include="..\InvestableIndexCore\IndexParameters.cpp" />
@@ -199,6 +202,7 @@
     <ClCompile Include="..\InvestableIndexCore\SizeTopPool.cpp" />
     <ClCompile Include="..\InvestableIndexCore\StkConContext.cpp" />
     <ClCompile Include="..\InvestableIndexCore\StkPool.cpp" />
+    <ClCompile Include="..\InvestableIndexCore\StringFormatter.cpp" />
     <ClCompile Include="..\InvestableIndexCore\test.cpp" />
     <ClCompile Include="..\InvestableIndexCore\tools.cpp" />
     <ClCompile Include="..\InvestableIndexCore\TopLimitFactor.cpp" />

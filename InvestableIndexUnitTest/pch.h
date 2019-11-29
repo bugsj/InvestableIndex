@@ -11,8 +11,26 @@
 #include <Windows.h>
 #include <tchar.h>
 
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+
 #include <vector>
 #include <map>
 #include <unordered_map>
+#include <set>
+#include <memory>
+
+#include <algorithm>
+#include <iterator>
+#include <functional>
+#include <numeric>
+
+#include <Windows.h>
+#include <mutex>
+#include <ppltasks.h>
+#include <ppl.h>
+
+#include "../InvestableIndexCore/framework.h"
 
 #endif //PCH_H

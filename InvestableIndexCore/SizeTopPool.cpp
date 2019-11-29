@@ -8,7 +8,7 @@ namespace InvestableIndex {
 	long long SizeTopPool::getSnapshot(long long date, std::vector<long long>* list) const
 	{
 		std::vector<long long> stks;
-		int cnt = static_cast<int>(m_Pool->getSnapshot(date, &stks));
+		long long cnt = m_Pool->getSnapshot(date, &stks);
 		if (cnt <= m_TopCount) {
 			list->swap(stks);
 			return cnt;
@@ -27,7 +27,7 @@ namespace InvestableIndex {
 		list->resize(m_TopCount);
 		auto iter_list = list->begin();
 		auto iter_idx = orderidx.cbegin();
-		for (int i = m_TopCount; i > 0; --i, ++iter_idx, ++iter_list) {
+		for (long long i = m_TopCount; i > 0; --i, ++iter_idx, ++iter_list) {
 			*iter_list = stks[*iter_idx];
 		}
 		std::sort(list->begin(), list->end());

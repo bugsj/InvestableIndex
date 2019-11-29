@@ -11,8 +11,27 @@ namespace InvestableIndex {
 		std::lock_guard<std::mutex> lck(m_init_mtx);
 
 		if (!m_initflag) {
-			m_dataset.init();
+			if (IndexInterface::m_module != NULL) {
+				TCHAR dllpath[MAX_PATH];
+				long long size = ::GetModuleFileName(IndexInterface::m_module, dllpath, MAX_PATH);
+				if (size > 0 && size < MAX_PATH) {
+					long long cut = -1;
+					for (long long i = 0; i < size; ++i) {
+						if (dllpath[i] == L'\\') {
+							cut = i;
+						}
+					}
+					if (cut > 0) {
+						dllpath[cut + 1] = L'\0';
+						std::vector<TCHAR> localpath;
+						m_dataset.setLocal(Tools::appendStr(&localpath, { dllpath, DATAFILE_SUBDIR }));
+						DataTable::useLocal();
+					}
+				}
+			}
 
+			m_dataset.init();
+	
 			m_params_pool.emplace_back(IndexParameters());
 			m_params = &m_params_pool.back();
 			m_params->init(m_dataset);
@@ -26,7 +45,7 @@ namespace InvestableIndex {
 		}
 	}
 
-	int IndexInterface::getOpenSectionWeight(long long date, std::vector<long long>* section, std::vector<double>* weight, int level) const
+	long long IndexInterface::getOpenSectionWeight(long long date, std::vector<long long>* section, std::vector<double>* weight, long long level) const
 	{
 		std::vector<long long> stks;
 		std::vector<double> stkweight;
@@ -53,17 +72,15 @@ namespace InvestableIndex {
 				i->second += *iter_stkweight;
 			}
 		}
-		int cnt = static_cast<int>(sectionweight.size());
+
+		long long cnt = sectionweight.size();
 		section->resize(cnt);
 		weight->resize(cnt);
-
-		auto iter_result = sectionweight.cbegin();
 		auto iter_rssection = section->begin();
 		auto iter_rsweight = weight->begin();
-
-		for (; iter_result != sectionweight.cend(); ++iter_result, ++iter_rssection, ++iter_rsweight) {
-			*iter_rssection = iter_result->first;
-			*iter_rsweight = iter_result->second;
+		for (auto iter_result :sectionweight) {
+			*iter_rssection++ = iter_result.first;
+			*iter_rsweight++ = iter_result.second;
 		}
 		return cnt;
 	}
@@ -72,8 +89,8 @@ namespace InvestableIndex {
 	{
 		std::fstream csvfile;
 		csvfile.open(file, std::ios::out);
-		int cnt = m_params->getDayCount();
-		for (int i = 0; i < cnt; i++) {
+		long long cnt = m_params->getDayCount();
+		for (long long i = 0; i < cnt; i++) {
 			csvfile << m_params->getDateByIndex(i) << ',' << m_index->getDailyReturn()[i + 1] << ',' << m_index->getCumReturn()[i + 1] << std::endl;
 		}
 		csvfile.close();
@@ -83,16 +100,16 @@ namespace InvestableIndex {
 		std::fstream csvfile;
 		csvfile.open(file, std::ios::out);
 
-		double base = m_params->getIndexBase();
-		int year = static_cast<int>(m_params->getDateByIndex(0)) / 10000;
-		int cnt = m_params->getDayCount();
-		for (int i = 0; i < cnt; i++) {
+		double base = static_cast<double>(m_params->getIndexBase());
+		long long year = m_params->getDateByIndex(0) / 10000;
+		long long cnt = m_params->getDayCount();
+		for (long long i = 0; i < cnt; i++) {
 			if (i + 1 < cnt && m_params->getDateByIndex(i + 1) / 10000 == year) {
 				continue;
 			}
 			csvfile << year << ',' << m_index->getCumReturn()[i + 1] / base - 1 << ',' << m_params->getDateByIndex(i) << ',' << m_index->getCumReturn()[i + 1] << std::endl;
 			if (i + 1 < cnt) {
-				year = static_cast<int>(m_params->getDateByIndex(i + 1)) / 10000;
+				year = m_params->getDateByIndex(i + 1) / 10000;
 				base = m_index->getCumReturn()[i + 1];
 			}
 		}
@@ -112,8 +129,8 @@ namespace InvestableIndex {
 		std::vector<double> weight;
 		m_index->getOpenWeight(date, &stk, &weight);
 		auto weight_iter = weight.cbegin();
-		for (auto iter = stk.cbegin(); iter != stk.cend(); ++iter, ++weight_iter) {
-			csvfile << *iter << ',' << *weight_iter << std::endl;
+		for (auto iter :stk) {
+			csvfile << iter << ',' << *weight_iter++ << std::endl;
 		}
 		csvfile.close();
 	}
@@ -121,9 +138,9 @@ namespace InvestableIndex {
 	void IndexInterface::writeMapReturnDaily(std::map<int, double>* r) const
 	{
 		std::map<int, double> data;
-		int cnt = m_params->getDayCount();
-		for (int i = 0; i < cnt; i++) {
-			data.try_emplace(static_cast<int>(m_params->getDateByIndex(i)), m_index->getCumReturn()[i + 1]);
+		long long cnt = m_params->getDayCount();
+		for (long long i = 0; i < cnt; i++) {
+			data.try_emplace(CHECK_DATE_MAX(m_params->getDateByIndex(i)), m_index->getCumReturn()[i + 1]);
 		}
 		r->swap(data);
 	}

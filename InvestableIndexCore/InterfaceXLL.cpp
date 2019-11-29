@@ -3,16 +3,8 @@
 #include "xlcall.h"
 #include "FRAMEWRK.H"
 
-#include <intrin.h>
-#ifdef _DEBUG
-#define DEBUGBREAK  __debugbreak()
-#else
-#define DEBUGBREAK  ((void)0)
-#endif
-
 #include "tools.h"
 #include "IndexInterface.h"
-
 
 extern "C" {
 	__declspec(dllexport) int xlAutoOpen(void);
@@ -55,42 +47,25 @@ void XLLEntry(HMODULE hModule, DWORD ul_reason_for_call)
 	case DLL_PROCESS_ATTACH:
 		XLL_hInst = hModule;
 		IndexInterface::setModuleHandle(hModule);
-		if (logfile == 0) {
-			logfile = ::CreateFileW(L"C:\\Users\\luojie\\Documents\\xlllog.txt", FILE_APPEND_DATA,
-				FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-		}
 		break;
 	case DLL_THREAD_ATTACH:
 		break;
 	case DLL_THREAD_DETACH:
 		break;
 	case DLL_PROCESS_DETACH:
-		if (logfile != 0) {
-			::CloseHandle(logfile);
-			logfile = 0;
-		}
 		break;
 	}
 	return;
 }
 
-void writelog(const char* log)
+inline void writelog(const char* log)
 {
-	DWORD size = 0, cnt = 0;
-	const char* ptr = log;
-	while (*ptr != '\0') {
-		++ptr;
-		++size;
-	}
-	if (size == 0) {
-		return;
-	}
-	WriteFile(logfile, log, size, &cnt, NULL);
+	InvestableIndex::Debug::WriteLog(log);
 }
 
-const int g_rgWorksheetFuncsRows = 6;
-const int g_rgWorksheetFuncsArgCol = 10;
-const int g_rgWorksheetFuncsCols = g_rgWorksheetFuncsArgCol + 10;
+constexpr int g_rgWorksheetFuncsRows = 6;
+constexpr int g_rgWorksheetFuncsArgCol = 10;
+constexpr int g_rgWorksheetFuncsCols = g_rgWorksheetFuncsArgCol + 10;
 
 #define ARGS_LIST_END (L"")
 #define FUNC_CATEGORY_NAME (L"鹏华指数开发平台")
@@ -183,7 +158,7 @@ LPCWSTR g_rgWorksheetFuncs[g_rgWorksheetFuncsRows][g_rgWorksheetFuncsCols] =
 
 int Excel12Register(LPXLOPER12 dll, LPCWSTR *args)
 {
-	writelog("Excel12Register\n");
+	writelog("Excel12Register");
 	int count;
 	for (count = g_rgWorksheetFuncsArgCol; count < g_rgWorksheetFuncsCols; ++count) {
 		if (args[count][0] == L'\0') {
@@ -217,7 +192,7 @@ __declspec(dllexport) int xlAutoOpen(void)
 	// tableregistering each function in the table using xlfRegister. 
 	// Functions must be registered before you can add a menu item.
 	//
-	writelog("xlAutoOpen\n");
+	writelog("xlAutoOpen");
 	XLOPER12 xDLL;	   // name of this DLL //
 	Excel12f(xlGetName, &xDLL, 0);
 
@@ -232,7 +207,7 @@ __declspec(dllexport) int xlAutoOpen(void)
 
 __declspec(dllexport) int xlAutoClose(void)
 {
-	writelog("xlAutoClose\n");
+	writelog("xlAutoClose");
 	for (int i = 0; i < g_rgWorksheetFuncsRows; i++)
 		Excel12f(xlfSetName, 0, 1, TempStr12(g_rgWorksheetFuncs[i][2]));
 
@@ -241,19 +216,19 @@ __declspec(dllexport) int xlAutoClose(void)
 
 __declspec(dllexport) int xlAutoAdd(void)
 {
-	writelog("xlAutoAdd\n");
+	writelog("xlAutoAdd");
 	return 1;
 }
 
 __declspec(dllexport) int xlAutoRemove(void)
 {
-	writelog("xlAutoRemove\n");
+	writelog("xlAutoRemove");
 	return 1;
 }
 
 __declspec(dllexport) void xlAutoFree12(LPXLOPER12 p_oper)
 {
-	writelog("xlAutoFree12\n");
+	writelog("xlAutoFree12");
 	if (p_oper->xltype == (xltypeStr | xlbitDLLFree)) {
 		delete[] p_oper->val.str;
 	}
@@ -278,7 +253,7 @@ static std::mutex calc_job_mutex;
 
 void XLLHandleCancelEvent()
 {
-	writelog("XLLHandleCancelEvent\n");
+	writelog("XLLHandleCancelEvent");
 	if (calc_task != empty_task && !calc_task.is_done()) {
 		cts.cancel();
 		calc_task.wait();
@@ -354,7 +329,7 @@ LPXLOPER12 setXLOPERStrDLLFree(LPXLOPER12 obj, const XCHAR* str)
 
 __declspec(dllexport) LPXLOPER12 xlAddInManagerInfo12(LPXLOPER12 xAction)
 {
-	writelog("xlAddInManagerInfo12\n");
+	writelog("xlAddInManagerInfo12");
 	XLOPER12 xIntAction;
 
 	//
@@ -407,7 +382,7 @@ int lpwstricmp(LPCWSTR s, LPCWSTR t)
 
 __declspec(dllexport) LPXLOPER12 xlAutoRegister12(LPXLOPER12 pxName)
 {
-	writelog("xlAutoRegister12\n");
+	writelog("xlAutoRegister12");
 	XLOPER12 xDLL;
 	LPXLOPER12 RegId;
 	int i;
@@ -667,7 +642,7 @@ int xloper2stkpool(LPXLOPER12 data, std::vector<int>* result)
 
 __declspec(dllexport) LPXLOPER12 XLLdateDigit2Excel(LPXLOPER12 n)
 {
-	writelog("XLLdateDigit2Excel\n");
+	writelog("XLLdateDigit2Excel");
 	int digitdate, error = -1;
 
 	error = xloper2digitdate(n, &digitdate);
@@ -683,7 +658,7 @@ __declspec(dllexport) LPXLOPER12 XLLdateDigit2Excel(LPXLOPER12 n)
 
 __declspec(dllexport) LPXLOPER12 XLLdateExcel2Digit(LPXLOPER12 n)
 {
-	writelog("XLLdateExcel2Digit\n");
+	writelog("XLLdateExcel2Digit");
 	int serialdate, error = -1;
 
 	error = xloper2digitdate(n, &serialdate);
@@ -708,7 +683,7 @@ __declspec(dllexport) void XLLInvestableIndex(
 	, LPXLOPER12 async_handle
 )
 {
-	writelog("XLLInvestableIndex\n");
+	writelog("XLLInvestableIndex");
 	int error = 0;
 	int bdate = 0, edate = 0, pt = 0, bpool = 0, topcnt = 0;
 	double topw = 0;
@@ -740,10 +715,17 @@ __declspec(dllexport) void XLLInvestableIndex(
 	cts = new_cts;
 	concurrency::cancellation_token calc_task_token = cts.get_token();
 	calc_task = concurrency::create_task([=] {
-		writelog("XLLInvestableIndex Task\n");
+		writelog("XLLInvestableIndex Task");
 		concurrency::cancellation_token cancel_token = calc_task_token;
 		IndexInterface* index;
-		index = IndexInterface::get();
+		try {
+			index = IndexInterface::get();
+		}
+		catch (std::runtime_error e) {
+			writelog("XLLInvestableIndex Task - CoreError");
+			Excel12f(xlAsyncReturn, 0, 2, async_handle, TempErr12(xlerrNA));
+			return;
+		}
 		if (bdate != 0) {
 			index->setPeriodStartDate(bdate);
 		}
@@ -773,11 +755,11 @@ __declspec(dllexport) void XLLInvestableIndex(
 
 		index->removePools();
 		if (!stkpool.empty()) {
-			index->appendSimplePool(static_cast<int>(stkpool.size()), stkpool.data());
+			index->appendSimplePool(stkpool.size(), stkpool.data());
 		}
 
 		if (topw >= 0) {
-			index->setTopStkWeight(static_cast<int>(topw * 100));
+			index->setTopStkWeight(static_cast<long long>(topw * 100));
 		}
 
 		if (topcnt >= 0) {
@@ -787,7 +769,7 @@ __declspec(dllexport) void XLLInvestableIndex(
 		index->setFixedDate(1);
 		{
 			std::lock_guard<std::mutex> lck(calc_job_mutex);
-			writelog("XLLInvestableIndex Task - Start\n");
+			writelog("XLLInvestableIndex Task - Start");
 			IndexInterface::get()->simulate(&cancel_token);
 		}
 		IndexInterface::get()->writeMapReturnDaily(&IndexSimResult);
@@ -796,18 +778,18 @@ __declspec(dllexport) void XLLInvestableIndex(
 		if (cancel_token.is_canceled()) {
 			concurrency::cancel_current_task();
 		};
-		writelog("XLLInvestableIndex Task - Finish\n");
+		writelog("XLLInvestableIndex Task - Finish");
 		Excel12f(xlAsyncReturn, 0, 2, async_handle, TempInt12(1));
-		writelog("XLLInvestableIndex Task - Exit\n");
-		}, calc_task_token);
+		writelog("XLLInvestableIndex Task - Exit");
+	}, calc_task_token);
 
-	writelog("XLLInvestableIndex - Exit\n");
+	writelog("XLLInvestableIndex - Exit");
 	return;
 }
 
 __declspec(dllexport) LPXLOPER12 XLLInvestableIndexPoint(LPXLOPER12 idx, LPXLOPER12 date)
 {
-	writelog("XLLInvestableIndexPoint\n");
+	writelog("XLLInvestableIndexPoint");
 	XLOPER12 xlt;
 	xlt.xltype = 0;
 	int error = -1;
@@ -871,14 +853,24 @@ __declspec(dllexport) LPXLOPER12 XLLInvestableIndexPoint(LPXLOPER12 idx, LPXLOPE
 
 __declspec(dllexport) LPXLOPER12 XLLInvestableIndexWeight(LPXLOPER12 idx, LPXLOPER12 xldate)
 {
-	writelog("XLLInvestableIndexWeight\n");
+	writelog("XLLInvestableIndexWeight");
+
+	IndexInterface* index;
+	try {
+		index = IndexInterface::get();
+	}
+	catch (std::runtime_error e) {
+		writelog("XLLInvestableIndexWeight - CoreError");
+		return XLOPERErrDLLFree(xlerrNA);
+	}
+
 	int date;
 	int error = xloper2digitdate(xldate, &date);
 	if (error != -1) {
 		return XLOPERErrDLLFree(error);
 	}
 
-	int refdate = static_cast<int>(IndexInterface::get()->getLastTradeDate(date));
+	int refdate = CHECK_DATE_MAX(index->getLastTradeDate(date));
 	if (refdate > date) {
 		return XLOPERErrDLLFree(xlerrNA);
 	}
@@ -891,15 +883,15 @@ __declspec(dllexport) LPXLOPER12 XLLInvestableIndexWeight(LPXLOPER12 idx, LPXLOP
 	std::vector<double> weight;
 	std::vector<int> rank;
 
-	int cnt;
-	if ((cnt = IndexInterface::get()->getOpenWeight(date, &stks, &weight)) == 0) {
+	long long cnt;
+	if ((cnt = index->getOpenWeight(date, &stks, &weight)) == 0) {
 		return XLOPERErrDLLFree(xlerrNA);
 	}
 	rank.resize(cnt);
 	std::iota(rank.begin(), rank.end(), 0);
 	std::sort(rank.begin(), rank.end(), [&weight](int l, int r) { return weight[l] > weight[r]; });
 
-	LPXLOPER12 result = XLOPERMultiDLLFree(2, cnt);
+	LPXLOPER12 result = XLOPERMultiDLLFree(2, CHECK_SIZE_MAXINT32(cnt));
 	
 	LPXLOPER12 rs_iter = result->val.array.lparray;
 
@@ -924,34 +916,42 @@ __declspec(dllexport) LPXLOPER12 XLLInvestableIndexWeight(LPXLOPER12 idx, LPXLOP
 
 __declspec(dllexport) LPXLOPER12 XLLInvestableIndexWType(LPXLOPER12 idx, LPXLOPER12 xltype)
 {
-	DEBUGBREAK;
-	writelog("XLLInvestableIndexWType\n");
-	int type;
+	writelog("XLLInvestableIndexWType");
 	
+	IndexInterface* index;
+	try {
+		index = IndexInterface::get();
+	}
+	catch (std::runtime_error e) {
+		writelog("XLLInvestableIndexWType - CoreError");
+		return XLOPERErrDLLFree(xlerrNA);
+	}
+
+	int type;
 	int error = xloper2int(xltype, &type);
 	if (error != -1) {
 		return XLOPERErrDLLFree(error);
 	}
 
-	writelog("XLLInvestableIndexWType - Set\n");
+	writelog("XLLInvestableIndexWType - Set");
 	if (IndexSimResult.empty() || !calc_job_mutex.try_lock()) {
-		writelog("XLLInvestableIndexWType - Cancel\n");
+		writelog("XLLInvestableIndexWType - Cancel");
 		return XLOPERErrDLLFree(xlerrNA);
 	}
 	switch (type) {
 	case 0:
-		IndexInterface::get()->setWeightType(WeightType::FREESHARE);
+		index->setWeightType(WeightType::FREESHARE);
 		break;
 	case 1:
-		IndexInterface::get()->setWeightType(WeightType::TOTALSHARE);
+		index->setWeightType(WeightType::TOTALSHARE);
 		break;
 	default:
-		writelog("XLLInvestableIndexWType - ErrorValue\n");
+		writelog("XLLInvestableIndexWType - ErrorValue");
 		error = xlerrValue;
 	}
 	calc_job_mutex.unlock();
 
-	writelog("XLLInvestableIndexWType - Exit\n");
+	writelog("XLLInvestableIndexWType - Exit");
 	if (error != -1) {
 		return XLOPERErrDLLFree(error);
 	}

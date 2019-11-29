@@ -4,30 +4,35 @@
 
 namespace InvestableIndex {
 
-	int StkConContext::get(int date, std::vector<long long>* stks, std::vector<double>* factor)
+	StkConContext::StkConContext(const PeriodEvents& events, const StkPool& pool, const WeightFactor& factor)
+		:m_events(&events), m_pool(&pool), m_factor(&factor) 
 	{
-		if (m_events == nullptr) {
-			int size = static_cast<int>(m_pool->getSnapshot(date, stks));
-			m_factor->getFactor(date, *stks, factor);
-			return size;
+		for (auto d : events.getEvents()) {
+			std::vector<long long> stks;
+			std::vector<double> factors;
+			long long size = m_pool->getSnapshot(d, &stks);
+			if (size > 0) {
+				m_factor->getFactor(d, stks, &factors);
+				m_cache.emplace(CHECK_DATE_MAX(d), make_pair(stks, factors));
+			}
 		}
-		else {
-			std::lock_guard<std::mutex> lck(m_get_mtx);
-			int refdate = m_events->getLastEventDate(date);
-			auto iter = m_cache.find(refdate);
+	}
+
+	long long StkConContext::get(long long date, std::vector<long long>* stks, std::vector<double>* factor) const
+	{
+		if (m_events) {
+			long long refdate = m_events->getLastEventDate(date);
+			auto iter = m_cache.find(CHECK_DATE_MAX(refdate));
 			if (iter != m_cache.end()) {
 				*stks = iter->second.first;
 				*factor = iter->second.second;
 				return stks->size();
 			}
-			else {
-				int size = static_cast<int>(m_pool->getSnapshot(refdate, stks));
-				m_factor->getFactor(refdate, *stks, factor);
-				m_cache.emplace(refdate, make_pair(*stks, *factor));
-				return size;
-			}
 		}
-		return 0;
+
+		long long size = m_pool->getSnapshot(date, stks);
+		m_factor->getFactor(date, *stks, factor);
+		return size;
 	}
 
 }

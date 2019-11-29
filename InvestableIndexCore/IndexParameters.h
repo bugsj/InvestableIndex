@@ -20,12 +20,12 @@ namespace InvestableIndex {
 		const DataSet* m_DataSet;
 		PeriodEvents m_events;
 
-		int m_IndexBase = DEFAULT_INDEX_BASE;
+		long long m_IndexBase = DEFAULT_INDEX_BASE;
 		long long m_PeriodStartIndex;
 		long long m_PeriodEndIndex;
 		int m_FixedDateFlag = 0;
 		double m_TopStkWeight = 0;
-		int m_TopStkCnt = 0;
+		long long m_TopStkCnt = 0;
 		WeightType m_weighttype = WeightType::FREESHARE;
 
 		MultiSetFilePool* m_section;
@@ -42,12 +42,12 @@ namespace InvestableIndex {
 	public:
 		int init(const DataSet& data);
 
-		int getDayCount() const { return static_cast<int>(m_PeriodEndIndex - m_PeriodStartIndex); }
+		long long getDayCount() const { return m_PeriodEndIndex - m_PeriodStartIndex; }
 		long long getDateByIndex(long long index) const { return m_DataSet->getDateByIndex(m_PeriodStartIndex + index); }
-		int resetCalendar() { m_PeriodStartIndex = 0; m_PeriodEndIndex = m_DataSet->daycount(); return getDayCount(); }
+		long long resetCalendar() { m_PeriodStartIndex = 0; m_PeriodEndIndex = m_DataSet->daycount(); return getDayCount(); }
 
-		int setIndexBase(int base) { return m_IndexBase = base; }
-		int getIndexBase() const { return m_IndexBase; }
+		long long setIndexBase(long long base) { return m_IndexBase = base; }
+		long long getIndexBase() const { return m_IndexBase; }
 
 		WeightType setWeightType(WeightType type) { return m_weighttype = type; }
 		WeightType getWeightType() const { return m_weighttype; }
@@ -69,21 +69,21 @@ namespace InvestableIndex {
 		}
 		double getTopStkWeight() const { return m_TopStkWeight; }
 
-		int setTopStkCnt(int cnt) {
+		long long setTopStkCnt(long long cnt) {
 			if (cnt > 0) { m_pool = &m_toppool.setTopCount(cnt); }
 			else { m_pool = &m_intersectpool; }
 			return m_TopStkCnt = cnt;
 		}
-		int getTopStkCnt() const { return m_TopStkCnt; }
+		long long getTopStkCnt() const { return m_TopStkCnt; }
 
 		const StkPool& setBasePool(const StkPool& base) { return m_intersectpool.setBasePool(base); }
 		int setBasePool(int base);
 		void removeBasePool() { m_intersectpool.removeBasePool(); }
 		void appendPool(StkPool& pool) { m_intersectpool.addPool(pool); }
-		int appendCSVPool(const char* file);
-		int appendSimplePool(int size, const int* buf);
+		long long appendCSVPool(const char* file);
+		long long appendSimplePool(long long size, const int* buf);
 		void setSectionPool(MultiSetFilePool& sectionpool) { m_section = &sectionpool; }
-		int appendSection(int section);
+		long long appendSection(int section);
 		void removePools() { m_intersectpool.clearPool(); m_simplefilepools.clear(); m_simplepools.clear(); }
 		long long getStkSection(long long date, const std::vector<long long>& stk, std::vector<long long>* section) const {
 			return m_DataSet->getStkSection(date, stk, section); 

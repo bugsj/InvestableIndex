@@ -12,8 +12,8 @@ namespace InvestableIndexBaseUnitTest
 	TEST_CLASS(DataColumnUnitTest)
 	{
 	public:
-		const TCHAR* filename = _T("w:\\dataset\\calendarTRADE_DATE.dat");
-		const int filesize = 20912;
+		const TCHAR* filename = _T("\\\\172.17.70.100\\个人文件夹\\luojie\\dataset\\calendarTRADE_DATE.dat");
+		const long long filesize = 20912;
 		const unsigned int filehead = 0x1328cf9U;
 		const unsigned int filecrc32 = 0x6785FB0DU;
 		const long long filehead64 = 0x1328cf9;
@@ -22,18 +22,18 @@ namespace InvestableIndexBaseUnitTest
 		TEST_METHOD(DataColumnInit)
 		{
 			InvestableIndex::DataColumn dc;
-			int rs = dc.init(filename, 8);
+			long long rs = dc.init(filename, 8);
 			Assert::AreEqual(filesize / 8, rs);
 		}
 
 		TEST_METHOD(DataColumnGetBuffer)
 		{
 			InvestableIndex::DataColumn dc;
-			Assert::AreEqual(0, reinterpret_cast<int>(dc.getBuffer()));
+			Assert::AreEqual(0LL, reinterpret_cast<long long>(dc.getBuffer()));
 
-			int rs = dc.init(filename, 8);
+			long long rs = dc.init(filename, 8);
 
-			Assert::AreEqual(filesize, static_cast<int>(dc.getBufferSize()));
+			Assert::AreEqual(filesize, dc.getBufferSize());
 			Assert::AreEqual(filehead, *reinterpret_cast<const unsigned int *>(dc.getBuffer()));
 			Assert::AreEqual(filecrc32, crc32(dc.getBuffer(), filesize));
 		}
@@ -41,9 +41,9 @@ namespace InvestableIndexBaseUnitTest
 		TEST_METHOD(DataColumnGetLL)
 		{
 			InvestableIndex::DataColumn dc;
-			Assert::AreEqual(0, reinterpret_cast<int>(dc.getll()));
+			Assert::AreEqual(0LL, reinterpret_cast<long long>(dc.getll()));
 
-			int rs = dc.init(filename, 8);
+			long long rs = dc.init(filename, 8);
 
 			Assert::AreEqual(filehead64, *dc.getll());
 			Assert::AreEqual(filehead64, dc.getll(0));

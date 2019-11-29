@@ -39,30 +39,30 @@ namespace InvestableIndex {
 
 		void init();
 
-		int getDayCount() const { return m_params->getDayCount(); }
+		long long getDayCount() const { return m_params->getDayCount(); }
 		long long getDateByIndex(long long index) const { return m_params->getDateByIndex(index); }
 		WeightType setWeightType(WeightType type) { return m_params->setWeightType(type); }
 		WeightType getWeightType() const { return m_params->getWeightType(); }
-		int setIndexBase(int base) { return m_params->setIndexBase(base); }
-		int getIndexBase() const { return m_params->getIndexBase(); }
+		long long setIndexBase(long long base) { return m_params->setIndexBase(base); }
+		long long getIndexBase() const { return m_params->getIndexBase(); }
 		long long setPeriodStartDate(long long date) { return m_params->setPeriodStartDate(date); }
 		long long getPeriodStartDate() const { return m_params->getPeriodStartDate(); }
 		long long setPeriodEndDate(long long date) { return m_params->setPeriodEndDate(date); }
 		long long getPeriodEndDate() const { return m_params->getPeriodEndDate(); }
 		void setFixedDate(int flag) { m_params->setFixedDateFlag(flag); }
-		void setTopStkWeight(int limit) { m_params->setTopStkWeight(limit / 100.0); }
-		void setTopStkCount(int cnt) { m_params->setTopStkCnt(cnt); }
+		void setTopStkWeight(long long limit) { m_params->setTopStkWeight(limit / 100.0); }
+		void setTopStkCount(long long cnt) { m_params->setTopStkCnt(cnt); }
 		int setIndexBasePool(int base) { return m_params->setBasePool(base); }
 		void removePools() { m_params->removePools(); }
-		int appendCSVPool(const char* file) { return m_params->appendCSVPool(file); }
-		int appendSimplePool(int size, const int* buf) { return m_params->appendSimplePool(size, buf); }
-		int appendSectionPool(int section) { return m_params->appendSection(section); }
+		long long appendCSVPool(const char* file) { return m_params->appendCSVPool(file); }
+		long long appendSimplePool(long long size, const int* buf) { return m_params->appendSimplePool(size, buf); }
+		long long appendSectionPool(int section) { return m_params->appendSection(section); }
 
 		long long getLastTradeDate(long long date) { return m_dataset.getLastTradeDate(date); }
 
 		IndexData& simulate(concurrency::cancellation_token* token = nullptr) { return m_index->simulate(*m_params, token); }
-		int getOpenWeight(long long date, std::vector<long long>* stks, std::vector<double>* weight) const { return m_index->getOpenWeight(date, stks, weight); }
-		int getOpenSectionWeight(long long date, std::vector<long long>* section, std::vector<double>* weight, int level) const;
+		long long getOpenWeight(long long date, std::vector<long long>* stks, std::vector<double>* weight) const { return m_index->getOpenWeight(date, stks, weight); }
+		long long getOpenSectionWeight(long long date, std::vector<long long>* section, std::vector<double>* weight, long long level) const;
 		const std::vector<double>& getDailyReturn() const { return m_index->getDailyReturn(); }
 		const std::vector<double>& getCumReturn() const { return m_index->getCumReturn(); }
 

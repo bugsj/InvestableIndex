@@ -97,6 +97,8 @@
       <OpenMPSupport>false</OpenMPSupport>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AssemblerOutput>AssemblyAndSourceCode</AssemblerOutput>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -183,6 +185,7 @@
     <ClInclude Include="DataColumn.h" />
     <ClInclude Include="DataSet.h" />
     <ClInclude Include="DataTable.h" />
+    <ClInclude Include="DebugOutput.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="FRAMEWRK.H" />
     <ClInclude Include="IndexData.h" />
@@ -202,6 +205,7 @@
     <ClInclude Include="SizeTopPool.h" />
     <ClInclude Include="StkConContext.h" />
     <ClInclude Include="StkPool.h" />
+    <ClInclude Include="StringFormatter.h" />
     <ClInclude Include="test.h" />
     <ClInclude Include="tools.h" />
     <ClInclude Include="TopLimitFactor.h" />
@@ -214,6 +218,7 @@
     <ClCompile Include="DataColumn.cpp" />
     <ClCompile Include="DataSet.cpp" />
     <ClCompile Include="DataTable.cpp" />
+    <ClCompile Include="DebugOutput.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="FRAMEWRK.CPP" />
     <ClCompile Include="IndexData.cpp" />
@@ -239,6 +244,7 @@
     <ClCompile Include="SizeTopPool.cpp" />
     <ClCompile Include="StkConContext.cpp" />
     <ClCompile Include="StkPool.cpp" />
+    <ClCompile Include="StringFormatter.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="tools.cpp" />
     <ClCompile Include="TopLimitFactor.cpp" />

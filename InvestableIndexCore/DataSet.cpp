@@ -4,12 +4,12 @@
 
 namespace InvestableIndex {
 
-	int DataSet::init()
+	long long DataSet::init()
 	{
-		m_FreeShare.init(STOCK_FREESHARE_FILE);
-		m_TotalShare.init(STOCK_TOTALSHARE_FILE);
-		m_StkPrice.init(STOCK_PRICE_FILE);
-		m_Calendar.init(STOCK_MARKETCALENDAR_FILE);
+		CHECK_DATAFILE_OPEN(m_FreeShare.init(STOCK_FREESHARE_FILE), STOCK_FREESHARE_FILE);
+		CHECK_DATAFILE_OPEN(m_TotalShare.init(STOCK_TOTALSHARE_FILE), STOCK_TOTALSHARE_FILE);
+		CHECK_DATAFILE_OPEN(m_StkPrice.init(STOCK_PRICE_FILE), STOCK_PRICE_FILE);
+		CHECK_DATAFILE_OPEN(m_Calendar.init(STOCK_MARKETCALENDAR_FILE), STOCK_MARKETCALENDAR_FILE);
 
 		concurrency::parallel_invoke(
 			[&] { m_FreeShare.createIndexCode(); },
@@ -28,7 +28,7 @@ namespace InvestableIndex {
 		return daycount();
 	}
 
-	int DataSet::getLastTradeDateIndex(long long date) const
+	long long DataSet::getLastTradeDateIndex(long long date) const
 	{
 		const long long* begin = m_Calendar.col(0).getll();
 		const long long* end = begin + m_Calendar.count();
@@ -37,17 +37,17 @@ namespace InvestableIndex {
 		if (pos > begin) {
 			--pos;
 		}
-		return static_cast<int>(pos - begin);
+		return pos - begin;
 	}
 
-	int DataSet::getFirstTradeDateIndex(long long date) const
+	long long DataSet::getFirstTradeDateIndex(long long date) const
 	{
 		const long long* begin = m_Calendar.col(0).getll();
 		const long long* end = begin + m_Calendar.count();
 
 		const long long* pos = std::find_if_not(begin, end, std::bind2nd(std::less<long long>(), date));
 
-		return static_cast<int>(pos - begin);
+		return pos - begin;
 	}
 
 	long long DataSet::getLastTradeDate(long long date) const
@@ -86,32 +86,32 @@ namespace InvestableIndex {
 		}
 	}
 
-	int DataSet::calcStkValues(long long date, const std::vector<long long>& code
+	long long DataSet::calcStkValues(long long date, const std::vector<long long>& code
 		, std::vector<double>* openvalues, std::vector<double>* closevalues, WeightType wt) const
 	{
-		int size = code.size();
-
+		long long size = code.size();
+		
 		if (size <= 0) {
 			return size;
 		}
 
+		const DataTable& share_table = getShareByType(wt);
+		const std::unordered_map<int, int>& stksearcher = getStkIndexOfDay(date);
 		openvalues->resize(size);
 		closevalues->resize(size);
 		auto openvalue_iter = openvalues->begin();
 		auto closevalue_iter = closevalues->begin();
-
-		const std::unordered_map<int, int>& stksearcher = getStkIndexOfDay(date);
-		for (auto iter = code.cbegin(); iter != code.cend(); ++iter, ++openvalue_iter, ++closevalue_iter) {
+		for (auto iter :code) {
 			long long shares;
 			long long index;
-			shares = getShareByType(wt).getData(*iter, date);
-			auto stkrs = stksearcher.find(static_cast<const int>(*iter));
+			shares = share_table.getData(iter, date);
+			auto stkrs = stksearcher.find(CHECK_CODE_MAX(iter));
 			if (stkrs == stksearcher.end()) {
 				continue;
 			}
 			index = stkrs->second;
-			*openvalue_iter = open(index) * shares;
-			*closevalue_iter = close(index) * shares;
+			*openvalue_iter++ = open(index) * shares;
+			*closevalue_iter++ = close(index) * shares;
 		}
 		return size;
 	}

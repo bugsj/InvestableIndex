@@ -24,8 +24,6 @@
 #include <numeric>
 
 #include <Windows.h>
-#include <stdlib.h>
-
 #include <mutex>
 #include <ppltasks.h>
 #include <ppl.h>

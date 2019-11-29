@@ -8,25 +8,23 @@ namespace InvestableIndex {
 	{
 		reinterpret_cast<SetFilePool*>(this)->init(file);
 
-		int cnt = static_cast<int>(getDataTable().count());
+		long long cnt = getDataTable().count();
 		const long long* section = getDataTable().col(STKSECTIONINDEX).getll();
 		const long long* stks = getDataTable().col(STKCODEINDEX).getll();
 		const long long* exitd = getDataTable().col(STKEXITDATEINDEX).getll();
-		int ss;
-		int stk;
-
+		
 		for (int i = 0; i < cnt; ++i) {
 			std::unordered_map<int, std::map<int, int>>::iterator stkiter;
 
-			stk = static_cast<int>(stks[i]);
-			ss = static_cast<int>(section[i]);
+			int stk = CHECK_CODE_MAX(stks[i]);
+			int ss = CHECK_CODE_MAX(section[i]);
 
 			stkiter = m_stkindex.find(stk);
 			if (stkiter == m_stkindex.end()) {
-				m_stkindex.emplace(stk, std::map<int, int>()).first->second.emplace(static_cast<int>(exitd[i]), ss);
+				m_stkindex.emplace(stk, std::map<int, int>()).first->second.emplace(CHECK_DATE_MAX(exitd[i]), ss);
 			}
 			else {
-				stkiter->second.emplace(static_cast<int>(exitd[i]), ss);
+				stkiter->second.emplace(CHECK_DATE_MAX(exitd[i]), ss);
 			}
 
 			std::unordered_map<int, std::vector<int> >::iterator iter;
@@ -70,12 +68,12 @@ namespace InvestableIndex {
 		auto iter_sct = section->begin();
 
 		for (; iter_stk != stk.end(); ++iter_stk, ++iter_sct) {
-			auto i = m_stkindex.find(static_cast<int>(*iter_stk));
+			auto i = m_stkindex.find(CHECK_CODE_MAX(*iter_stk));
 			if (i == m_stkindex.end()) {
 				*iter_sct = 0;
 				continue;
 			}
-			*iter_sct = i->second.lower_bound(static_cast<int>(date))->second;
+			*iter_sct = i->second.lower_bound(CHECK_DATE_MAX(date))->second;
 		}
 
 		return section->size();
@@ -89,7 +87,7 @@ namespace InvestableIndex {
 			return 0;
 		}
 
-		auto current = m_sectionindex.find(static_cast<int>(section));
+		auto current = m_sectionindex.find(CHECK_CODE_MAX(section));
 		if (current == m_sectionindex.end()) {
 			return 0;
 		}

@@ -7,16 +7,16 @@ namespace InvestableIndex {
 
 	IndexData& IndexData::simulate(concurrency::cancellation_token* cancel_token)
 	{
-		int cnt = m_params->getDayCount();
+		long long cnt = m_params->getDayCount();
 		std::vector<double> dailyreturn(cnt + 1LL);
 		std::vector<double> cumreturn(cnt + 1LL);
 
 		dailyreturn[0] = 0;
-		cumreturn[0] = m_params->getIndexBase();
+		cumreturn[0] = static_cast<double>(m_params->getIndexBase());
 
 		StkConContext ctx(m_params->getEvents(), m_params->getPool(), m_params->getWeightFactor());
 
-		auto dailyprocess = [&](int i) {
+		auto dailyprocess = [&](long long i) {
 			std::vector<long long> stks;
 			std::vector<double> stks_closevalue, stks_openvalue;
 
@@ -40,16 +40,16 @@ namespace InvestableIndex {
 		};
 
 		if (cancel_token == nullptr) {
-			concurrency::parallel_for(0, cnt, dailyprocess);
+			concurrency::parallel_for(0LL, cnt, dailyprocess);
 		}
 		else {
 			concurrency::run_with_cancellation_token([&]() {
-				concurrency::parallel_for(0, cnt, dailyprocess);
+				concurrency::parallel_for(0LL, cnt, dailyprocess);
 			}, *cancel_token);
 		}
 
 		double baseadj = (m_params->getIndexBase() == 0 ? 1.0 : 0.0);
-		for (int i = 0; i < cnt; i++) {
+		for (long long i = 0; i < cnt; i++) {
 			cumreturn[i + 1LL] = (baseadj + cumreturn[i]) * (1.0 + dailyreturn[i + 1LL]) - baseadj;
 		}
 		if (cancel_token && cancel_token->is_canceled()) {
@@ -61,7 +61,7 @@ namespace InvestableIndex {
 		return *this;
 	}
 
-	int IndexData::getWeight(long long date, std::vector<long long>* stk, std::vector<double>* weight, int type) const
+	long long IndexData::getWeight(long long date, std::vector<long long>* stk, std::vector<double>* weight, int type) const
 	{
 		stk->clear();
 		weight->clear();
@@ -72,27 +72,30 @@ namespace InvestableIndex {
 		long long size = getValues(date, stk, &stks_openvalue, &stks_closevalue, ctx);
 
 		if (size <= 0) {
-			return static_cast<int>(size);
+			return size;
 		}
 
 		const std::vector<double>* value = (type == OPENPRICECOL ? &stks_openvalue : &stks_closevalue);
 
 		double mvalue = std::accumulate(value->cbegin(), value->cend(), 0.0);
 		auto value_iter = value->cbegin();
-		for (auto weight_iter = weight->begin(); weight_iter != weight->end(); ++weight_iter, ++value_iter) {
-			*weight_iter = *value_iter / mvalue;
+		for (auto weight_iter :*weight) {
+			weight_iter = *value_iter++ / mvalue;
 		}
 
-		return static_cast<int>(size);
+		return size;
 	}
 
-	int IndexData::getValues(long long date, std::vector<long long>* stk, std::vector<double>* openvalue, std::vector<double>* closevalue, StkConContext& ctx) const
+	long long IndexData::getValues(long long date, std::vector<long long>* stk, std::vector<double>* openvalue, std::vector<double>* closevalue, StkConContext& ctx) const
 	{
 		std::vector<long long> idxcon;
 		std::vector<double> conweightfactor;
 		std::vector<double> openvalue_raw, closevalue_raw;
 
-		int size = ctx.get(date, &idxcon, &conweightfactor);
+		idxcon.reserve(EST_MARKET_STOCK_COUNT);
+		conweightfactor.reserve(EST_MARKET_STOCK_COUNT);
+
+		long long size = ctx.get(date, &idxcon, &conweightfactor);
 		if (size <= 0) {
 			return size;
 		}
@@ -105,9 +108,9 @@ namespace InvestableIndex {
 		auto closevalue_iter = closevalue->begin();
 		auto openvalue_raw_iter = openvalue_raw.cbegin();
 		auto closevalue_raw_iter = closevalue_raw.cbegin();
-		auto wf = conweightfactor.begin();
+		auto wf = conweightfactor.cbegin();
 
-		for (int i = size; i > 0; --i) {
+		while (openvalue_iter != openvalue->end()) {
 			*openvalue_iter = *openvalue_raw_iter * *wf;
 			*closevalue_iter = *closevalue_raw_iter * *wf;
 			++wf, ++openvalue_iter, ++closevalue_iter, ++openvalue_raw_iter, ++closevalue_raw_iter;

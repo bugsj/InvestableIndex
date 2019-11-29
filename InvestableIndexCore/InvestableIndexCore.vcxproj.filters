@@ -102,6 +102,12 @@
     <ClInclude Include="StkConContext.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="DebugOutput.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="StringFormatter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -192,6 +198,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="StkConContext.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugOutput.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="StringFormatter.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

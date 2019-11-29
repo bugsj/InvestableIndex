@@ -37,7 +37,7 @@ namespace InvestableIndex {
 		return base;
 	}
 
-	int IndexParameters::appendSection(int section)
+	long long IndexParameters::appendSection(int section)
 	{
 		if (m_section == 0) {
 			return 0;
@@ -46,20 +46,20 @@ namespace InvestableIndex {
 		if (rs != 0) {
 			m_intersectpool.addPool(*m_section);
 		}
-		return static_cast<int>(rs);
+		return rs;
 	}
 
-	int IndexParameters::appendCSVPool(const char* file)
+	long long IndexParameters::appendCSVPool(const char* file)
 	{
 		m_simplefilepools.emplace_back(SimpleFilePool());
 		long long rs = m_simplefilepools.back().init(file);
 		m_intersectpool.addPool(m_simplefilepools.back());
-		return static_cast<int>(rs);
+		return rs;
 	}
 
-	int IndexParameters::appendSimplePool(int size, const int* buf)
+	long long IndexParameters::appendSimplePool(long long size, const int* buf)
 	{
-		int rs = 0;
+		long long rs = 0;
 		if (size > 0) {
 			m_simplepools.emplace_back(SimplePool());
 			m_simplepools.back().init();

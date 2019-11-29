@@ -17,6 +17,7 @@ namespace InvestableIndex {
 		void addEvents(const long long* events, size_t cnt) { m_EventDates.insert(events, events + cnt); }
 		void setHalfYearEvent();
 		int setEvent(int flag) { setHalfYearEvent(); return flag; }
+		const std::set<long long>& getEvents() const { return m_EventDates; }
 		void cleanEvents() { m_EventDates.clear(); }
 		long long getLastEventDate(long long date) const;
 	};

@@ -188,6 +188,7 @@
     <ClInclude Include="DebugOutput.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="FRAMEWRK.H" />
+    <ClInclude Include="IndexBuilder.h" />
     <ClInclude Include="IndexData.h" />
     <ClInclude Include="IndexInterface.h" />
     <ClInclude Include="IndexParameters.h" />
@@ -221,6 +222,7 @@
     <ClCompile Include="DebugOutput.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="FRAMEWRK.CPP" />
+    <ClCompile Include="IndexBuilder.cpp" />
     <ClCompile Include="IndexData.cpp" />
     <ClCompile Include="IndexInterface.cpp" />
     <ClCompile Include="IndexParameters.cpp" />

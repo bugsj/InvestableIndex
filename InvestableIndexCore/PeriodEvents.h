@@ -11,6 +11,9 @@ namespace InvestableIndex {
 		std::set<long long> m_EventDates;
 
 	public:
+		PeriodEvents() {}
+		PeriodEvents(const PeriodEvents& e) : m_DataSet(e.m_DataSet), m_EventDates(e.m_EventDates) {}
+		PeriodEvents(const PeriodEvents&& e) : m_DataSet(e.m_DataSet), m_EventDates(std::move(e.m_EventDates)) {}
 		void init(const DataSet& dataset) { m_DataSet = &dataset; }
 		void addEvent(long long date) { m_EventDates.insert(date); }
 		void addEvents(const std::vector<long long>& events) { m_EventDates.insert(events.begin(), events.end()); }

@@ -15,9 +15,8 @@ namespace InvestableIndex {
 		SetFilePool() {}
 		~SetFilePool() {}
 
-		const DataTable& getDataTable() const { return m_table; }
+		SetFilePool(const TCHAR* file) : m_table(file) {}
 		long long init(const TCHAR* file) { return m_table.init(file); }
-
 		virtual long long getSnapshot(long long date, std::vector<long long>* list) const;
 	};
 

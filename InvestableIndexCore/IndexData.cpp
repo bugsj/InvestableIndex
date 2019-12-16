@@ -55,13 +55,13 @@ namespace InvestableIndex {
 		if (cancel_token && cancel_token->is_canceled()) {
 			concurrency::cancel_current_task();
 		}
-		dailyreturn.swap(m_DailyReturn);
-		cumreturn.swap(m_CumReturn);
+		m_DailyReturn = std::move(dailyreturn);
+		m_CumReturn = std::move(cumreturn);
 
 		return *this;
 	}
 
-	long long IndexData::getWeight(long long date, std::vector<long long>* stk, std::vector<double>* weight, int type) const
+	long long IndexData::getWeight(long long date, std::vector<long long>* stk, std::vector<double>* weight, DataTableColumn type) const
 	{
 		stk->clear();
 		weight->clear();
@@ -75,32 +75,37 @@ namespace InvestableIndex {
 			return size;
 		}
 
-		const std::vector<double>* value = (type == OPENPRICECOL ? &stks_openvalue : &stks_closevalue);
+		weight->resize(size);
+		const std::vector<double>* value = (type == DataTableColumn::PRE_PRICE ? &stks_openvalue : &stks_closevalue);
 
 		double mvalue = std::accumulate(value->cbegin(), value->cend(), 0.0);
 		auto value_iter = value->cbegin();
-		for (auto weight_iter :*weight) {
+		for (auto& weight_iter : *weight) {
 			weight_iter = *value_iter++ / mvalue;
 		}
 
+		DEBUGBREAKCOND(stk->size() == 0);
+		DEBUGBREAKCOND(weight->size() == 0);
+		DEBUGBREAKCOND(stk->size() != size);
+		DEBUGBREAKCOND(weight->size() != size);
+
 		return size;
 	}
-
+	
 	long long IndexData::getValues(long long date, std::vector<long long>* stk, std::vector<double>* openvalue, std::vector<double>* closevalue, StkConContext& ctx) const
 	{
-		std::vector<long long> idxcon;
 		std::vector<double> conweightfactor;
 		std::vector<double> openvalue_raw, closevalue_raw;
 
-		idxcon.reserve(EST_MARKET_STOCK_COUNT);
+		stk->reserve(EST_MARKET_STOCK_COUNT);
 		conweightfactor.reserve(EST_MARKET_STOCK_COUNT);
 
-		long long size = ctx.get(date, &idxcon, &conweightfactor);
+		long long size = ctx.get(date, stk, &conweightfactor);
 		if (size <= 0) {
 			return size;
 		}
 
-		m_dataset->calcStkValues(date, idxcon, &openvalue_raw, &closevalue_raw, m_params->getWeightType());
+		m_dataset->calcStkValues(date, *stk, &openvalue_raw, &closevalue_raw, m_params->getWeightType());
 
 		openvalue->resize(size);
 		closevalue->resize(size);
@@ -115,6 +120,13 @@ namespace InvestableIndex {
 			*closevalue_iter = *closevalue_raw_iter * *wf;
 			++wf, ++openvalue_iter, ++closevalue_iter, ++openvalue_raw_iter, ++closevalue_raw_iter;
 		}
+		DEBUGBREAKCOND(stk->size() == 0);
+		DEBUGBREAKCOND(openvalue->size() == 0);
+		DEBUGBREAKCOND(closevalue->size() == 0);
+		DEBUGBREAKCOND(stk->size() != size);
+		DEBUGBREAKCOND(openvalue->size() != size);
+		DEBUGBREAKCOND(closevalue->size() != size);
+
 		return size;
 	}
 

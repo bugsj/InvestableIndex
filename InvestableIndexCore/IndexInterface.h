@@ -9,7 +9,7 @@ namespace InvestableIndex {
 	class IndexInterface
 	{
 	private:
-		DataSet m_dataset;
+		std::unique_ptr<DataSet> m_dataset;
 		static HMODULE m_module;
 
 		std::vector<IndexParameters> m_params_pool;
@@ -58,7 +58,7 @@ namespace InvestableIndex {
 		long long appendSimplePool(long long size, const int* buf) { return m_params->appendSimplePool(size, buf); }
 		long long appendSectionPool(int section) { return m_params->appendSection(section); }
 
-		long long getLastTradeDate(long long date) { return m_dataset.getLastTradeDate(date); }
+		long long getLastTradeDate(long long date) { return m_dataset->getLastTradeDate(date); }
 
 		IndexData& simulate(concurrency::cancellation_token* token = nullptr) { return m_index->simulate(*m_params, token); }
 		long long getOpenWeight(long long date, std::vector<long long>* stks, std::vector<double>* weight) const { return m_index->getOpenWeight(date, stks, weight); }
@@ -72,7 +72,7 @@ namespace InvestableIndex {
 
 		void writeMapReturnDaily(std::map<int, double>* r) const;
 
-		void test() const { InvestableIndex::test(*m_index, m_dataset); }
+		void test() const { InvestableIndex::test(*m_index, *m_dataset); }
 
 	};
 

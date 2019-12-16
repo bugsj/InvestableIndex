@@ -4,14 +4,12 @@
 
 namespace InvestableIndex {
 
-	long long MultiSetFilePool::init(const TCHAR* file)
+	long long MultiSetFilePool::createIndex()
 	{
-		reinterpret_cast<SetFilePool*>(this)->init(file);
-
-		long long cnt = getDataTable().count();
-		const long long* section = getDataTable().col(STKSECTIONINDEX).getll();
-		const long long* stks = getDataTable().col(STKCODEINDEX).getll();
-		const long long* exitd = getDataTable().col(STKEXITDATEINDEX).getll();
+		long long cnt = m_table.count();
+		const long long* section = m_table.col(STKSECTIONINDEX).getll();
+		const long long* stks = m_table.col(STKCODEINDEX).getll();
+		const long long* exitd = m_table.col(STKEXITDATEINDEX).getll();
 		
 		for (int i = 0; i < cnt; ++i) {
 			std::unordered_map<int, std::map<int, int>>::iterator stkiter;
@@ -56,7 +54,7 @@ namespace InvestableIndex {
 			}
 		}
 
-		return getDataTable().count();
+		return m_table.count();
 	}
 
 	long long MultiSetFilePool::getStkSection(long long date, const std::vector<long long>& stk, std::vector<long long>* section) const
@@ -104,9 +102,9 @@ namespace InvestableIndex {
 			return 0;
 		}
 
-		const long long* refcode = getDataTable().col(STKCODEINDEX).getll();
-		const long long* refentrydate = getDataTable().col(STKENTRYDATEINDEX).getll();
-		const long long* refexitdate = getDataTable().col(STKEXITDATEINDEX).getll();
+		const long long* refcode = m_table.col(STKCODEINDEX).getll();
+		const long long* refentrydate = m_table.col(STKENTRYDATEINDEX).getll();
+		const long long* refexitdate = m_table.col(STKEXITDATEINDEX).getll();
 
 		for (auto iter :*m_currentsection) {
 			if (refentrydate[iter] <= date && refexitdate[iter] >= date) {

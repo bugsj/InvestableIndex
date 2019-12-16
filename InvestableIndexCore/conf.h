@@ -13,17 +13,17 @@ namespace InvestableIndex {
 
 	extern const TCHAR* DATAFILE_SUBDIR;
 
-	const int FILE_DATA_DEFAULT_WIDTH = 8;
+	constexpr int FILE_DATA_DEFAULT_WIDTH = 8;
 
-	const int STKCODEINDEX = 0;
-	const int STKDATEINDEX = 1;
-	const int STKDATAFIRSTCOL = 2; 
-	const int STKSHARECOL = 2;
-	const int STKENTRYDATEINDEX = 1;
-	const int STKEXITDATEINDEX = 2;
-	const int STKSECTIONINDEX = 3;
-	const int OPENPRICECOL = 2;
-	const int CLOSEPRICECOL = 3;
+	constexpr int STKCODEINDEX = 0;
+	constexpr int STKDATEINDEX = 1;
+	constexpr int STKDATAFIRSTCOL = 2;
+	constexpr int STKSHARECOL = 2;
+	constexpr int STKENTRYDATEINDEX = 1;
+	constexpr int STKEXITDATEINDEX = 2;
+	constexpr int STKSECTIONINDEX = 3;
+	constexpr int OPENPRICECOL = 2;
+	constexpr int CLOSEPRICECOL = 3;
 
 	extern const TCHAR* COL_FILE_FORMAT;
 	extern const TCHAR* COL_DATA_FILE_EXT;
@@ -32,7 +32,7 @@ namespace InvestableIndex {
 	extern const int DEFAULT_INDEX_BASE;
 	extern const TCHAR* DEFAULT_NET_PATH;
 
-	const int EST_TRADINGDAY_PER_YEAR = 256;
-	const int EST_DATA_COUNT_YEARS = 12;
-	const int EST_MARKET_STOCK_COUNT = 4096;
+	constexpr int EST_TRADINGDAY_PER_YEAR = 256;
+	constexpr int EST_DATA_COUNT_YEARS = 12;
+	constexpr int EST_MARKET_STOCK_COUNT = 4096;
 }

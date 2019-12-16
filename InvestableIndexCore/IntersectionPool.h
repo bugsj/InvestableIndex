@@ -13,6 +13,9 @@ namespace InvestableIndex {
 
 	public:
 		IntersectionPool() : m_basepool(nullptr) {}
+		IntersectionPool(const StkPool* base) : m_basepool(base) {}
+		IntersectionPool(const IntersectionPool& p) : m_basepool(p.m_basepool), m_pools(p.m_pools) {}
+		IntersectionPool(const IntersectionPool&& p) noexcept: m_basepool(p.m_basepool), m_pools(std::move(p.m_pools)) {}
 		~IntersectionPool() {}
 
 		const StkPool& setBasePool(const StkPool& base) { m_basepool = &base; return base; }

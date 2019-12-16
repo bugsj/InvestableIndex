@@ -22,12 +22,25 @@ namespace InvestableIndex {
 		SetFilePool m_idx985;
 		MultiSetFilePool m_section;
 
+		const double* m_preprice;
+		const double* m_closeprice;
+
 	public:
-		DataSet() {}
+		static std::unique_ptr<DataSet> create() {
+			std::unique_ptr<DataSet> obj(new DataSet());
+			obj->init();
+			return obj;
+		}
+		DataSet() :
+			m_section(INDUSTRY_COM_FILE),
+			m_preprice(nullptr),
+			m_closeprice(nullptr)
+		{}
 		~DataSet() {}
 
 		static void setPath(const TCHAR* pathfmt) { DataTable::setPath(pathfmt); }
 		static void setLocal(const TCHAR* path) { DataTable::setLocalPath(path); }
+		static void useLocal() { DataTable::useLocal(); }
 
 		long long init();
 		long long daycount() const { return m_Calendar.count(); }
@@ -40,11 +53,13 @@ namespace InvestableIndex {
 		long long getFirstTradeDate(long long date) const;
 
 		double price(long long code, long long date, int col) const { return m_StkPrice.col(col).getd(m_StkPrice.getIndexDC(code, date)); }
-		double close(long long code, long long date) const { return price(code, date, CLOSEPRICECOL); }
-		double open(long long code, long long date) const { return price(code, date, OPENPRICECOL);; }
+		double price(long long code, long long date, DataTableColumn col) const { return m_StkPrice.col(col).getd(m_StkPrice.getIndexDC(code, date)); }
+		double close(long long code, long long date) const { return price(code, date, DataTableColumn::CLOSE_PRICE /*CLOSEPRICECOL*/); }
+		double open(long long code, long long date) const { return price(code, date, DataTableColumn::PRE_PRICE /*OPENPRICECOL*/);; }
 		double price(long long index, int col) const { return m_StkPrice.col(col).getd(index); }
-		double close(long long index) const { return price(index, CLOSEPRICECOL); }
-		double open(long long index) const { return price(index, OPENPRICECOL); }
+		double price(long long index, DataTableColumn col) const { return m_StkPrice.col(col).getd(index); }
+		double close(long long index) const { return m_closeprice[index]; }
+		double preclose(long long index) const { return m_preprice[index]; }
 		long long priceIndex(long long code, long long date) const { return m_StkPrice.getIndexDC(code, date); }
 		const std::unordered_map<int, int>& getStkIndexOfDay(long long date) const { return m_StkPrice.getIndexByCodeDay(date); }
 		long long freeshare(long long code, long long date) const { return m_FreeShare.getData(code, date); }

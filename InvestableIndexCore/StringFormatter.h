@@ -69,7 +69,7 @@ namespace InvestableIndex {
 				std::vector<T> buf;
 				int minus_sign = (n < 0 ? 1 : 0);
 				long long absn = std::abs(n);
-				buf.reserve(32);
+				buf.reserve(std::numeric_limits<long long>::digits10 + 4);
 				while (absn > 0) {
 					buf.push_back(last_digit_to_char<T>(absn));
 					absn /= 10;

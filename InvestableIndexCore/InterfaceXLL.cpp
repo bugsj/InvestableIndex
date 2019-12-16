@@ -68,7 +68,7 @@ constexpr int g_rgWorksheetFuncsArgCol = 10;
 constexpr int g_rgWorksheetFuncsCols = g_rgWorksheetFuncsArgCol + 10;
 
 #define ARGS_LIST_END (L"")
-#define FUNC_CATEGORY_NAME (L"鹏华指数开发平台")
+#define FUNC_CATEGORY_NAME (L"指数开发平台")
 
 LPCWSTR g_rgWorksheetFuncs[g_rgWorksheetFuncsRows][g_rgWorksheetFuncsCols] =
 {
@@ -226,26 +226,6 @@ __declspec(dllexport) int xlAutoRemove(void)
 	return 1;
 }
 
-__declspec(dllexport) void xlAutoFree12(LPXLOPER12 p_oper)
-{
-	writelog("xlAutoFree12");
-	if (p_oper->xltype == (xltypeStr | xlbitDLLFree)) {
-		delete[] p_oper->val.str;
-	}
-	if (p_oper->xltype == (xltypeMulti | xlbitDLLFree)) {
-		int cnt = p_oper->val.array.columns * p_oper->val.array.rows;
-		LPXLOPER12 ptr = p_oper->val.array.lparray;
-		for (; cnt > 0; --cnt, ++ptr)
-		{
-			if (ptr->xltype == (xltypeStr | xlbitDLLFree)) {
-				delete[] ptr->val.str;
-			}
-		}
-		delete[] p_oper->val.array.lparray;
-	}
-	delete p_oper;
-}
-
 static const concurrency::task<void> empty_task;
 static concurrency::task<void> calc_task;
 static concurrency::cancellation_token_source cts;
@@ -260,48 +240,68 @@ void XLLHandleCancelEvent()
 	}
 }
 
-LPXLOPER12 XLOPERMultiDLLFree(int col, int rw)
+
+LPXLOPER12 CreateXLOPERDLLFree(DWORD type)
 {
 	LPXLOPER12 obj = new XLOPER12;
-	obj->xltype = (xltypeMulti | xlbitDLLFree);
-	obj->val.array.columns = col;
-	obj->val.array.rows = rw;
-	obj->val.array.lparray = new XLOPER12[static_cast<size_t>(col) * rw];
+	memset(obj, 0, sizeof(*obj));
+	obj->xltype = (type | xlbitDLLFree);
 
 	return obj;
 }
 
+void FreeXLOPERDLLFree(LPXLOPER12 obj, bool delete_root = true)
+{
+	if (obj->xltype == (xltypeMulti | xlbitDLLFree)) {
+		int cnt = obj->val.array.columns * obj->val.array.rows;
+		LPXLOPER12 ptr = obj->val.array.lparray;
+		LPXLOPER12 ptr_end = obj->val.array.lparray + cnt;
+		for (; ptr < ptr_end; ++ptr)
+		{
+			FreeXLOPERDLLFree(ptr, false);
+		}
+		delete[] obj->val.array.lparray;
+	}
+	else if (obj->xltype == (xltypeStr | xlbitDLLFree)) {
+		delete[] obj->val.str;
+	}
+
+	if (delete_root && (obj->xltype & xlbitDLLFree) != 0) {
+		delete obj;
+	}
+}
+
 LPXLOPER12 XLOPERNumDLLFree(double num)
 {
-	LPXLOPER12 obj = new XLOPER12;
-	obj->xltype = (xltypeNum | xlbitDLLFree);
+	LPXLOPER12 obj = CreateXLOPERDLLFree(xltypeNum);
 	obj->val.num = num;
 
 	return obj;
 }
 
 
-LPXLOPER12 XLOPERDLLFree(DWORD type)
+LPXLOPER12 XLOPERErrDLLFree(int err)
 {
-	LPXLOPER12 obj = new XLOPER12;
-	obj->xltype = (type | xlbitDLLFree);
+	LPXLOPER12 obj = CreateXLOPERDLLFree(xltypeErr);
+	obj->val.err = err;
 
 	return obj;
 }
 
-LPXLOPER12 XLOPERErrDLLFree(int err)
+LPXLOPER12 XLOPERMultiDLLFree(int col, int rw)
 {
-	LPXLOPER12 obj = new XLOPER12;
-	obj->xltype = (xltypeErr | xlbitDLLFree);
-	obj->val.err = err;
+	LPXLOPER12 obj = CreateXLOPERDLLFree(xltypeMulti);
+	obj->val.array.columns = col;
+	obj->val.array.rows = rw;
+	obj->val.array.lparray = new XLOPER12[static_cast<size_t>(col)* rw];
+	memset(obj->val.array.lparray, 0, sizeof(XLOPER12) * static_cast<size_t>(col)* rw);
 
 	return obj;
 }
 
 LPXLOPER12 XLOPERStrDLLFree(const XCHAR *str)
 {
-	LPXLOPER12 obj = new XLOPER12;
-	obj->xltype = (xltypeStr | xlbitDLLFree);
+	LPXLOPER12 obj = CreateXLOPERDLLFree(xltypeStr);
 	size_t len = wcslen(str);
 	obj->val.str = new XCHAR[len + 4];
 	obj->val.str[0] = static_cast<unsigned short>(len);
@@ -313,9 +313,10 @@ LPXLOPER12 XLOPERStrDLLFree(const XCHAR *str)
 
 LPXLOPER12 setXLOPERStrDLLFree(LPXLOPER12 obj, const XCHAR* str)
 {
-	if (obj->xltype == (xltypeStr | xlbitDLLFree)) {
-		delete[] obj->val.str;
-	}
+	DEBUGBREAKCOND(obj->xltype == xltypeStr);
+	DEBUGBREAKCOND(obj->xltype == xltypeMulti);
+	FreeXLOPERDLLFree(obj, false);
+
 	obj->xltype = (xltypeStr | xlbitDLLFree);
 	size_t len = wcslen(str);
 	obj->val.str = new XCHAR[len + 4];
@@ -327,11 +328,18 @@ LPXLOPER12 setXLOPERStrDLLFree(LPXLOPER12 obj, const XCHAR* str)
 }
 
 
+__declspec(dllexport) void xlAutoFree12(LPXLOPER12 p_oper)
+{
+	writelog("xlAutoFree12");
+	FreeXLOPERDLLFree(p_oper);
+}
+
 __declspec(dllexport) LPXLOPER12 xlAddInManagerInfo12(LPXLOPER12 xAction)
 {
 	writelog("xlAddInManagerInfo12");
 	XLOPER12 xIntAction;
 
+	DEBUGBREAKCOND(xAction->xltype != xltypeNum || xAction->val.num != 1.0);
 	//
 	// This code coerces the -in value to an integer. This is how the
 	// code determines what is being requested. If it receives a 1, 
@@ -356,10 +364,12 @@ __declspec(dllexport) LPXLOPER12 xlAddInManagerInfo12(LPXLOPER12 xAction)
 
 	if (action == 1)
 	{
+		writelog("xlAddInManagerInfo12 return name");
 		return XLOPERStrDLLFree(FUNC_CATEGORY_NAME);
 	}
 	else
 	{
+		writelog("xlAddInManagerInfo12 return err");
 		return XLOPERErrDLLFree(xlerrValue);
 	}
 }
@@ -853,7 +863,7 @@ __declspec(dllexport) LPXLOPER12 XLLInvestableIndexPoint(LPXLOPER12 idx, LPXLOPE
 
 __declspec(dllexport) LPXLOPER12 XLLInvestableIndexWeight(LPXLOPER12 idx, LPXLOPER12 xldate)
 {
-	writelog("XLLInvestableIndexWeight");
+	writelog("XLLInvestableIndexWeight - Start");
 
 	IndexInterface* index;
 	try {
@@ -867,11 +877,13 @@ __declspec(dllexport) LPXLOPER12 XLLInvestableIndexWeight(LPXLOPER12 idx, LPXLOP
 	int date;
 	int error = xloper2digitdate(xldate, &date);
 	if (error != -1) {
+		writelog("XLLInvestableIndexWeight - DateError");
 		return XLOPERErrDLLFree(error);
 	}
 
 	int refdate = CHECK_DATE_MAX(index->getLastTradeDate(date));
 	if (refdate > date) {
+		writelog("XLLInvestableIndexWeight - Date out of range");
 		return XLOPERErrDLLFree(xlerrNA);
 	}
 	else {
@@ -885,11 +897,17 @@ __declspec(dllexport) LPXLOPER12 XLLInvestableIndexWeight(LPXLOPER12 idx, LPXLOP
 
 	long long cnt;
 	if ((cnt = index->getOpenWeight(date, &stks, &weight)) == 0) {
+		writelog("XLLInvestableIndexWeight - empty");
 		return XLOPERErrDLLFree(xlerrNA);
 	}
+	DEBUGBREAKCOND(cnt != stks.size());
+	DEBUGBREAKCOND(cnt != weight.size());
+
 	rank.resize(cnt);
 	std::iota(rank.begin(), rank.end(), 0);
 	std::sort(rank.begin(), rank.end(), [&weight](int l, int r) { return weight[l] > weight[r]; });
+
+	writelog("XLLInvestableIndexWeight - core result");
 
 	LPXLOPER12 result = XLOPERMultiDLLFree(2, CHECK_SIZE_MAXINT32(cnt));
 	
@@ -902,7 +920,7 @@ __declspec(dllexport) LPXLOPER12 XLLInvestableIndexWeight(LPXLOPER12 idx, LPXLOP
 		stkcode[3] = (stks[*iter]) % 10 + L'0'; stks[*iter] /= 10;
 		stkcode[2] = (stks[*iter]) % 10 + L'0'; stks[*iter] /= 10;
 		stkcode[1] = (stks[*iter]) % 10 + L'0'; stks[*iter] /= 10;
-		stkcode[0] = static_cast<XCHAR>(stks[*iter]) + L'0';
+		stkcode[0] = (stks[*iter]) % 10 + L'0';
 		stkcode[8] = (stks[*iter] < 5) ? L'Z' : L'H';
 		setXLOPERStrDLLFree(rs_iter, stkcode);
 		++rs_iter;
@@ -910,7 +928,7 @@ __declspec(dllexport) LPXLOPER12 XLLInvestableIndexWeight(LPXLOPER12 idx, LPXLOP
 		rs_iter->val.num = weight[*iter];
 		++rs_iter;
 	}
-
+	writelog("XLLInvestableIndexWeight - Finish");
 	return result;
 }
 

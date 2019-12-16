@@ -5,7 +5,6 @@
 #include <windows.h>
 #include <tchar.h>
 
-
 #include <intrin.h>
 
 #ifdef _DEBUG
@@ -15,15 +14,15 @@
 
 #else
 
-#define DEBUGBREAK  ((void)0)
-#define DEBUGBREAKCOND(expr)  ((void)0)
+#define DEBUGBREAK  __noop()
+#define DEBUGBREAKCOND(expr)  __noop(expr)
 
 #endif
 
-
+#undef max
 inline int CHECK_SIZE_MAXINT32(long long n)
 {
-	if (n > MAXINT32) {
+	if (n > std::numeric_limits<int>::max()) {
 		throw std::length_error("size too big: maxint32");
 	}
 	return static_cast<int>(n);
@@ -31,7 +30,7 @@ inline int CHECK_SIZE_MAXINT32(long long n)
 
 inline int CHECK_VALUE_MAXINT32(long long n)
 {
-	if (n > MAXINT32) {
+	if (n > std::numeric_limits<int>::max()) {
 		throw std::overflow_error("value too big: maxint32");
 	}
 	return static_cast<int>(n);
@@ -39,7 +38,7 @@ inline int CHECK_VALUE_MAXINT32(long long n)
 
 inline unsigned int CHECK_SIZE_MAXUINT32(long long n)
 {
-	if (n > MAXUINT32) {
+	if (n > std::numeric_limits<unsigned int>::max()) {
 		throw std::length_error("size too big: maxuint32");
 	}
 	return static_cast<unsigned int>(n);

@@ -21,18 +21,13 @@ namespace InvestableIndexBaseUnitTest
 
 		TEST_METHOD(DataColumnInit)
 		{
-			InvestableIndex::DataColumn dc;
-			long long rs = dc.init(filename, 8);
-			Assert::AreEqual(filesize / 8, rs);
+			InvestableIndex::DataColumn dc(filename, 8);
+			Assert::AreEqual(filesize / 8, dc.count());
 		}
 
 		TEST_METHOD(DataColumnGetBuffer)
 		{
-			InvestableIndex::DataColumn dc;
-			Assert::AreEqual(0LL, reinterpret_cast<long long>(dc.getBuffer()));
-
-			long long rs = dc.init(filename, 8);
-
+			InvestableIndex::DataColumn dc(filename, 8);
 			Assert::AreEqual(filesize, dc.getBufferSize());
 			Assert::AreEqual(filehead, *reinterpret_cast<const unsigned int *>(dc.getBuffer()));
 			Assert::AreEqual(filecrc32, crc32(dc.getBuffer(), filesize));
@@ -40,11 +35,7 @@ namespace InvestableIndexBaseUnitTest
 
 		TEST_METHOD(DataColumnGetLL)
 		{
-			InvestableIndex::DataColumn dc;
-			Assert::AreEqual(0LL, reinterpret_cast<long long>(dc.getll()));
-
-			long long rs = dc.init(filename, 8);
-
+			InvestableIndex::DataColumn dc(filename, 8);
 			Assert::AreEqual(filehead64, *dc.getll());
 			Assert::AreEqual(filehead64, dc.getll(0));
 			Assert::AreEqual(filesize / 8LL, dc.count());

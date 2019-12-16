@@ -40,6 +40,29 @@ namespace InvestableIndex {
 		WeightFactor* m_weightfactor;
 
 	public:
+		IndexParameters() {}
+		IndexParameters(IndexParameters&& o) noexcept :
+			m_DataSet(o.m_DataSet),
+			m_events(std::move(o.m_events)),
+			m_IndexBase(o.m_IndexBase),
+			m_PeriodStartIndex(o.m_PeriodStartIndex),
+			m_PeriodEndIndex(o.m_PeriodEndIndex),
+			m_FixedDateFlag(o.m_FixedDateFlag),
+			m_TopStkWeight(o.m_TopStkWeight),
+			m_TopStkCnt(o.m_TopStkCnt),
+			m_weighttype(o.m_weighttype),
+			m_section(o.m_section),
+			m_intersectpool(std::move(o.m_intersectpool)),
+			m_toppool(std::move(o.m_toppool)),
+			m_pool(o.m_pool),
+			m_simplefilepools(std::move(o.m_simplefilepools)),
+			m_simplepools(std::move(o.m_simplepools)),
+			m_TopLimitFactor(std::move(m_TopLimitFactor)),
+			m_OneWeightFactor(std::move(m_OneWeightFactor)),
+			m_weightfactor(o.m_weightfactor) {
+
+		}
+
 		int init(const DataSet& data);
 
 		long long getDayCount() const { return m_PeriodEndIndex - m_PeriodStartIndex; }
@@ -93,8 +116,14 @@ namespace InvestableIndex {
 		}
 
 		const PeriodEvents& getEvents() const { return m_events; }
-		const StkPool& getPool() const { return *m_pool; }
-		const WeightFactor& getWeightFactor() const { return *m_weightfactor; }
+		const StkPool& getPool() const { 
+			DEBUGBREAKCOND(m_pool == nullptr); 
+			return *m_pool; 
+		}
+		const WeightFactor& getWeightFactor() const { 
+			DEBUGBREAKCOND(m_weightfactor == nullptr);
+			return *m_weightfactor;
+		}
 	};
 
 }

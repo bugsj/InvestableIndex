@@ -16,6 +16,9 @@ namespace InvestableIndex {
 		const IndexParameters* m_params;
 	public:
 		TopLimitFactor() : m_dataset(nullptr), m_params(nullptr), m_toplimit(0.1) {}
+		TopLimitFactor(double top, const IndexParameters& params, const DataSet& data) : m_dataset(&data), m_params(&params), m_toplimit(top) {}
+		TopLimitFactor(const TopLimitFactor& f) : m_dataset(f.m_dataset), m_params(f.m_params), m_toplimit(f.m_toplimit) {}
+		TopLimitFactor(const TopLimitFactor&& f) : m_dataset(f.m_dataset), m_params(f.m_params), m_toplimit(f.m_toplimit) {}
 		~TopLimitFactor() {}
 
 		void init(double top, const IndexParameters& index, const DataSet& data) { m_toplimit = top; m_params = &index; m_dataset = &data; }

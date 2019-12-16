@@ -7,9 +7,10 @@ namespace InvestableIndex {
 	StkConContext::StkConContext(const PeriodEvents& events, const StkPool& pool, const WeightFactor& factor)
 		:m_events(&events), m_pool(&pool), m_factor(&factor) 
 	{
+		std::vector<long long> stks;
+		std::vector<double> factors;
+
 		for (auto d : events.getEvents()) {
-			std::vector<long long> stks;
-			std::vector<double> factors;
 			long long size = m_pool->getSnapshot(d, &stks);
 			if (size > 0) {
 				m_factor->getFactor(d, stks, &factors);

@@ -10,28 +10,34 @@ namespace InvestableIndex {
 	std::vector<TCHAR> DataTable::s_defaultnet_path = std::vector<TCHAR>(DEFAULT_NET_PATH, DEFAULT_NET_PATH + wcslen(DEFAULT_NET_PATH) + 1);
 	const std::vector<TCHAR>* DataTable::s_path = &DataTable::s_defaultnet_path;
 
+#define MAP_DATATABLECOLUMN(name, id) do { if (_stricmp(col_name, name)==0) { return id; } } while(0);
+
+	DataTableColumn DataTableColumnMap(const char* col_name) {
+
+		MAP_DATATABLECOLUMN("windcode", DataTableColumn::STK_CODE);
+		MAP_DATATABLECOLUMN("trade_date", DataTableColumn::STK_DATE);
+		MAP_DATATABLECOLUMN("price_date", DataTableColumn::STK_DATE);
+		MAP_DATATABLECOLUMN("pre_price", DataTableColumn::PRE_PRICE);
+		MAP_DATATABLECOLUMN("close_price", DataTableColumn::CLOSE_PRICE);
+		MAP_DATATABLECOLUMN("freeshare", DataTableColumn::STK_SHARE);
+		MAP_DATATABLECOLUMN("totalshare", DataTableColumn::STK_SHARE);
+		MAP_DATATABLECOLUMN("entry_date", DataTableColumn::STK_ENTRY_DATE);
+		MAP_DATATABLECOLUMN("exit_date", DataTableColumn::STK_EXIT_DATE);
+		MAP_DATATABLECOLUMN("mcode", DataTableColumn::STK_SECTION);
+
+		return DataTableColumn::ColumnIndex_LAST_VALUE;
+	}
+
 	static inline long long mergecd(long long code, long long date)
 	{
 		return (code << 32) + date;
 	}
 
-	void DataTable::setPath(const TCHAR* path) {
-		if (path != nullptr) {
-			Tools::appendStr(&s_user_path, path);
-		}
-	}
-	void DataTable::setLocalPath(const TCHAR* path) {
-		if (path != nullptr) {
-			Tools::appendStr(&s_defaultlocal_path, path);
-		}
-	}
 	void DataTable::useLocal() {
 		if (!s_defaultlocal_path.empty()) {
 			std::vector<TCHAR> testfile(s_defaultlocal_path);
 			Tools::appendStr(&testfile, { L"\\", STOCK_MARKETCALENDAR_FILE, COL_DESC_FILE_EXT });
-
 			Debug::WriteLog(testfile.data());
-
 			DWORD attr = GetFileAttributes(testfile.data());
 			if (attr != INVALID_FILE_ATTRIBUTES) {
 				s_path = &s_defaultlocal_path;
@@ -58,6 +64,7 @@ namespace InvestableIndex {
 
 		const int bufsize = 256;
 		char buf[bufsize];
+		long long colindex = 0;
 		while (fgets(buf, bufsize, fp)) {
 			char* ptr = buf;
 			while (*ptr != ',' && *ptr != '\0' && *ptr != '\n' && ptr - buf < bufsize) {
@@ -71,6 +78,7 @@ namespace InvestableIndex {
 				colwidth.push_back(FILE_DATA_DEFAULT_WIDTH);
 			}
 			*ptr = '\0';
+			setColumnMap(buf, colindex++);
 			colfile.emplace_back(std::vector<WCHAR>());
 			Tools::convMBCS2UNICODE(&colfile.back(), buf);
 			DWORD err = ::GetLastError();
@@ -81,17 +89,16 @@ namespace InvestableIndex {
 		for (unsigned int i = 0; i < colfile.size(); ++i) {
 			datafile.clear();
 			Tools::appendStr(&datafile, { s_path->data(), _T("\\"), name, colfile[i].data(), COL_DATA_FILE_EXT });
-			m_columns.emplace_back(std::make_unique<DataColumn>());
-			CHECK_DATAFILE_OPEN(m_columns.back()->init(datafile.data(), colwidth[i]), datafile.data());
+			m_columns.emplace_back(DataColumn(datafile.data(), colwidth[i]));
 		}
 		return colfile.size();
 	}
 
 	void DataTable::createIndexDate()
 	{
-		const long long* refcode = m_columns[STKCODEINDEX]->getll();
-		const long long* refcodeend = m_columns[STKCODEINDEX]->getll() + m_columns[STKCODEINDEX]->count();
-		const long long* refdate = m_columns[STKDATEINDEX]->getll();
+		const long long* refcode = m_columns[STKCODEINDEX].getll();
+		const long long* refcodeend = m_columns[STKCODEINDEX].getll() + m_columns[STKCODEINDEX].count();
+		const long long* refdate = m_columns[STKDATEINDEX].getll();
 		int index = 0;
 
 		m_index_date.reserve(EST_TRADINGDAY_PER_YEAR * EST_DATA_COUNT_YEARS);
@@ -115,9 +122,9 @@ namespace InvestableIndex {
 
 	void DataTable::createIndexCode()
 	{
-		const long long* refcode = m_columns[STKCODEINDEX]->getll();
-		const long long* refcodeend = m_columns[STKCODEINDEX]->getll() + m_columns[STKCODEINDEX]->count();
-		const long long* refdate = m_columns[STKDATEINDEX]->getll();
+		const long long* refcode = m_columns[STKCODEINDEX].getll();
+		const long long* refcodeend = m_columns[STKCODEINDEX].getll() + m_columns[STKCODEINDEX].count();
+		const long long* refdate = m_columns[STKDATEINDEX].getll();
 		int index = 0;
 
 		while (refcode != refcodeend) {

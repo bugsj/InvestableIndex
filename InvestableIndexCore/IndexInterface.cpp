@@ -24,22 +24,21 @@ namespace InvestableIndex {
 					if (cut > 0) {
 						dllpath[cut + 1] = L'\0';
 						std::vector<TCHAR> localpath;
-						m_dataset.setLocal(Tools::appendStr(&localpath, { dllpath, DATAFILE_SUBDIR }));
-						DataTable::useLocal();
+						DataSet::setLocal(Tools::appendStr(&localpath, { dllpath, DATAFILE_SUBDIR }));
+						DataSet::useLocal();
 					}
 				}
 			}
 
-			m_dataset.init();
+			m_dataset = DataSet::create();
 	
 			m_params_pool.emplace_back(IndexParameters());
 			m_params = &m_params_pool.back();
-			m_params->init(m_dataset);
-			m_params->setSectionPool(m_dataset.getSectionPool());
+			m_params->init(*m_dataset);
+			m_params->setSectionPool(m_dataset->getSectionPool());
 
-			m_index_pool.emplace_back(IndexData());
+			m_index_pool.emplace_back(IndexData(*m_dataset));
 			m_index = &m_index_pool.back();
-			m_index->init(m_dataset);
 
 			m_initflag = true;
 		}

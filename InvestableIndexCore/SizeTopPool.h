@@ -18,6 +18,10 @@ namespace InvestableIndex {
 		long long m_TopCount = 50;
 	public:
 		SizeTopPool() {}
+		SizeTopPool(const SizeTopPool& p) : m_Pool(p.m_Pool), m_DataSet(p.m_DataSet), m_Params(p.m_Params),
+			m_WeightType(p.m_WeightType), m_TopCount(p.m_TopCount) {}
+		SizeTopPool(const SizeTopPool&& p) : m_Pool(p.m_Pool), m_DataSet(p.m_DataSet), m_Params(p.m_Params),
+			m_WeightType(p.m_WeightType), m_TopCount(p.m_TopCount) {}
 		~SizeTopPool() {}
 
 		void init(const StkPool& base, const DataSet& data, const IndexParameters& params) { m_Pool = &base; m_DataSet = &data; m_Params = &params; }

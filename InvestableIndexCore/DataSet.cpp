@@ -20,10 +20,12 @@ namespace InvestableIndex {
 			[&] { m_StkPrice.createIndexDate(); }
 		);
 
+		m_preprice = m_StkPrice.col(DataTableColumn::PRE_PRICE).getd();
+		m_closeprice = m_StkPrice.col(DataTableColumn::CLOSE_PRICE).getd();
+
 		m_idx300.init(INDEX_000300_COM_FILE);
 		m_idx905.init(INDEX_000905_COM_FILE);
 		m_idx985.init(INDEX_000985_COM_FILE);
-		m_section.init(INDUSTRY_COM_FILE);
 
 		return daycount();
 	}
@@ -101,7 +103,7 @@ namespace InvestableIndex {
 		closevalues->resize(size);
 		auto openvalue_iter = openvalues->begin();
 		auto closevalue_iter = closevalues->begin();
-		for (auto iter :code) {
+		for (auto iter : code) {
 			long long shares;
 			long long index;
 			shares = share_table.getData(iter, date);
@@ -110,8 +112,8 @@ namespace InvestableIndex {
 				continue;
 			}
 			index = stkrs->second;
-			*openvalue_iter++ = open(index) * shares;
-			*closevalue_iter++ = close(index) * shares;
+			*openvalue_iter++ = m_preprice[index] * shares;
+			*closevalue_iter++ = m_closeprice[index] * shares;
 		}
 		return size;
 	}
